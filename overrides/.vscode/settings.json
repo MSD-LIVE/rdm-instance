@@ -1,0 +1,4 @@
+{
+    // MSD-LIVE CHANGE: disable format on save to avoid seeing formatting changes in diffs
+    "editor.formatOnSave": false
+}

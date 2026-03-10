@@ -1,0 +1,63 @@
+{
+    "name": "rdm-assets",
+    "displayName": "MSD-LIVE RDM Assets Manager",
+    "description": "MSD-LIVE extension that runs invenio-cli asset build when a new asset file is detected. Starts the invenio-cli assets watch command when VS code launches, adds a command to restart the watch",
+    "publisher": "MSD-LIVE",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/MSD-LIVE/rdm-instance"
+    },
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.106.1"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "rdm-assets.restartRdmAssetsWatch",
+                "title": "Restart RDM Assets Watch",
+                "category": "MSD-LIVE"
+            },
+            {
+                "command": "rdm-assets.toggleNewAssetWatcher",
+                "title": "Toggle New Asset Watcher",
+                "category": "MSD-LIVE"
+            }
+        ],
+        "configuration": {
+            "title": "MSD-LIVE RDM Assets",
+            "properties": {
+                "rdm-assets.enableNewAssetWatcher": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable automatic invenio-cli asset builds when new asset files are created."
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src",
+        "test": "vscode-test"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.106.1",
+        "@types/mocha": "^10.0.10",
+        "@types/node": "22.x",
+        "typescript-eslint": "^8.48.1",
+        "eslint": "^9.39.1",
+        "typescript": "^5.9.3",
+        "@vscode/test-cli": "^0.0.12",
+        "@vscode/test-electron": "^2.5.2"
+    }
+}

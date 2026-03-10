@@ -1,0 +1,10 @@
+{
+    "editor.formatOnSave": false,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "prettier.configPath": "/workspaces/rdm-instance/rdm-app/.prettierrc.json",
+    "prettier.useEditorConfig": false,
+    "rdm-assets.enableNewAssetWatcher": true
+}

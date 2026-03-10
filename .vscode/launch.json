@@ -1,0 +1,131 @@
+// .vscode/launch.json
+{
+    "configurations": [
+        {
+            "name": "Flask Server",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "flask",
+            "envFile": "${workspaceFolder}/rdm-app/.env",
+            "env": {
+                "FLASK_APP": "invenio_app.wsgi:application",
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "1",
+                "PYTHONIOENCODING": "utf-8",
+                "INVENIO_SITE_UI_URL": "https://127.0.0.1:5007",
+                "INVENIO_SITE_API_URL": "https://127.0.0.1:5007/api",
+                "MAIL_SERVER": "127.0.0.1",
+                "MAIL_PORT": "1025",
+                "MAIL_DEFAULT_SENDER": "test@localhost"
+            },
+            "args": [
+                "run",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "5007",
+                "--cert",
+                "/workspaces/rdm-instance/rdm-app/docker/nginx/test.crt",
+                "--key",
+                "/workspaces/rdm-instance/rdm-app/docker/nginx/test.key"
+            ],
+            "jinja": true,
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "cwd": "/workspaces/vanilla-rdm-instance/rdm-app",
+            "python": "/root/.local/share/virtualenvs/rdm-venv/bin/python"
+        },
+        {
+            "name": "Gunicorn Server",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "gunicorn",
+            "subProcess": true,
+            "justMyCode": false,
+            "envFile": "${workspaceFolder}/rdm-app/.env",
+            "env": {
+                "FLASK_APP": "invenio_app.wsgi:application",
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "1",
+                "PYTHONIOENCODING": "utf-8",
+                "INVENIO_SITE_UI_URL": "https://127.0.0.1:5007",
+                "INVENIO_SITE_API_URL": "https://127.0.0.1:5007/api"
+            },
+            "args": [
+                "--bind",
+                "0.0.0.0:5007",
+                "--worker-class",
+                "gthread",
+                "--workers",
+                "2",
+                "--threads",
+                "4",
+                "--timeout",
+                "300",
+                "--reload",
+                "--certfile",
+                "/workspaces/rdm-instance/rdm-app/docker/nginx/test.crt",
+                "--keyfile",
+                "/workspaces/rdm-instance/rdm-app/docker/nginx/test.key",
+                "invenio_app.wsgi:application"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "/workspaces/rdm-instance/rdm-app",
+            "python": "/root/.local/share/virtualenvs/rdm-venv/bin/python"
+        },
+        {
+            "name": "Worker",
+            "envFile": "/workspaces/rdm-instance/rdm-app/.env",
+            "type": "node-terminal",
+            "request": "launch",
+            // can change this config to use a config we can debug with debugpy if needed later
+            "command": "pipenv run invenio-cli run worker",
+            "cwd": "/workspaces/rdm-instance/rdm-app"
+        },
+        {
+            "name": "Worker Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "celery",
+            "subProcess": true,
+            "args": [
+                "-A",
+                "invenio_app.celery",
+                "worker",
+                "-l",
+                "INFO",
+                "--beat",
+                "-E",
+                "-Q",
+                "celery,low"
+            ],
+            "envFile": "${workspaceFolder}/rdm-app/.env",
+            "env": {
+                "FLASK_APP": "invenio_app.wsgi:application",
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "1"
+            },
+            "console": "integratedTerminal",
+            "cwd": "/workspaces/rdm-instance/rdm-app",
+            "python": "/root/.local/share/virtualenvs/rdm-venv/bin/python",
+            "justMyCode": false
+        }
+    ],
+    "compounds": [
+        {
+            "name": "RDM App Debugger (py and worker)",
+            "configurations": [
+                "Gunicorn Server",
+                // "Flask Server",
+                // "Worker"
+                "Worker Debug"
+            ],
+            "stopAll": false,
+            "presentation": {
+                "hidden": false,
+                "group": "InvenioRDM",
+                "order": 1
+            }
+        }
+    ]
+}

@@ -1,0 +1,4 @@
+[submodule "forked-rdm-repos/invenio-rdm-records"]
+	path = forked-rdm-repos/invenio-rdm-records
+	url = https://github.com/MSD-LIVE/invenio-rdm-records.git
+	branch = main

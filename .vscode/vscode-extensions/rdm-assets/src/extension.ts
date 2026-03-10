@@ -1,0 +1,244 @@
+import * as vscode from 'vscode';
+import { spawn, ChildProcess } from "child_process";
+import * as fs from 'fs';
+import * as path from 'path';
+
+let assetsWatchProcess: ChildProcess | null = null;
+let outputChannel: vscode.OutputChannel;
+let newAssetFileWatcher: vscode.FileSystemWatcher | null = null;
+
+export function activate(context: vscode.ExtensionContext) {
+    outputChannel = vscode.window.createOutputChannel("RDM Assets and Overrides Watch");
+    context.subscriptions.push(outputChannel);
+
+    const restartCommand = vscode.commands.registerCommand('rdm-assets.restartRdmAssetsWatch', () => {
+        restartAssetsWatch();
+    });
+    context.subscriptions.push(restartCommand);
+
+    const toggleWatcherCommand = vscode.commands.registerCommand('rdm-assets.toggleNewAssetWatcher', async () => {
+        const config = vscode.workspace.getConfiguration('rdm-assets');
+        const enabled = config.get<boolean>('enableNewAssetWatcher', true);
+        const target = vscode.workspace.workspaceFolders?.length
+            ? vscode.ConfigurationTarget.Workspace
+            : vscode.ConfigurationTarget.Global;
+        await config.update('enableNewAssetWatcher', !enabled, target);
+        vscode.window.showInformationMessage(`New asset file watcher ${!enabled ? 'enabled' : 'disabled'}.`);
+    });
+    context.subscriptions.push(toggleWatcherCommand);
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {
+        if (event.affectsConfiguration('rdm-assets.enableNewAssetWatcher')) {
+            syncNewAssetFileWatcher(context);
+        }
+    }));
+
+    // get the workspace folder that has the file path of /workspaces/rdm-instance/rdm-app
+    const workspaceFolder = vscode.workspace.workspaceFolders?.find(folder =>
+        folder.uri.fsPath.endsWith("rdm-app")
+    );
+    // const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+
+    const rdmReadyPath = workspaceFolder ? path.join(workspaceFolder.uri.fsPath, ".rdm-ready") : "";
+
+    // Only start if .rdm-ready exists
+    if (rdmReadyPath && fs.existsSync(rdmReadyPath)) {
+        startAssetsWatch();
+    } else {
+        outputChannel.appendLine(`Not starting: invenio-cli assets watch, container still building (no invenio-cli installed yet).`);
+    }
+
+    // Watch for file creation to trigger manual build
+    syncNewAssetFileWatcher(context);
+
+    // Watch for signal file from setup-services.sh to restart the watch process
+    if (workspaceFolder) {
+        const signalWatcher = vscode.workspace.createFileSystemWatcher(
+            new vscode.RelativePattern(workspaceFolder, ".rdm-ready"),
+            false, false, false
+        );
+        signalWatcher.onDidCreate(() => vscode.commands.executeCommand('rdm-assets.restartRdmAssetsWatch'));
+        signalWatcher.onDidChange(() => vscode.commands.executeCommand('rdm-assets.restartRdmAssetsWatch'));
+        context.subscriptions.push(signalWatcher);
+        outputChannel.appendLine('watching for .rdm-ready...');
+    } else {
+        outputChannel.appendLine('no workspace folder, not watching for .rdm-ready');
+    }
+
+    // get the workspace folder that has the file path of /workspaces/rdm-instance/rdm-app
+    const overridesWorkspaceFolder = vscode.workspace.workspaceFolders?.find(folder =>
+        folder.uri.fsPath.endsWith("overrides")
+    );
+    // add another watcher to our overrides folder that simply runs the link-overrides.py script only when files are created or deleted:
+    if (overridesWorkspaceFolder) {
+        const overridesWatcher = vscode.workspace.createFileSystemWatcher(
+            new vscode.RelativePattern(overridesWorkspaceFolder, "code/**"),
+            false, true, false
+        );
+        // call in overrides/link-overrides.py on create or delete
+        overridesWatcher.onDidCreate(() => {
+            outputChannel.appendLine('File created in overrides/, running link-overrides.py...');
+            const linkProcess = spawn("python3", ["link-overrides.py"], {
+                cwd: "/workspaces/rdm-instance/overrides",
+                shell: true
+            });
+            linkProcess.stdout.on("data", data => {
+                outputChannel.append(data.toString());
+            });
+            linkProcess.stderr.on("data", data => {
+                outputChannel.append(data.toString());
+            });
+            linkProcess.on("close", code => {
+                outputChannel.appendLine(`*** link-overrides.py complete (exit code ${code}) ***`);
+            });
+        });
+        overridesWatcher.onDidDelete(() => {
+            outputChannel.appendLine('File deleted in overrides/, running link-overrides.py...');
+            const linkProcess = spawn("python3", ["link-overrides.py"], {
+                cwd: "/workspaces/rdm-instance/overrides",
+                shell: true
+            });
+            linkProcess.stdout.on("data", data => {
+                outputChannel.append(data.toString());
+            });
+            linkProcess.stderr.on("data", data => {
+                outputChannel.append(data.toString());
+            });
+            linkProcess.on("close", code => {
+                outputChannel.appendLine(`*** link-overrides.py complete (exit code ${code}) ***`);
+            });
+        });
+        context.subscriptions.push(overridesWatcher);
+    }
+}
+
+function startAssetsWatch() {
+    if (assetsWatchProcess) {
+        return;
+    }
+    // first check if '/root/.local/share/virtualenvs/rdm-venv/var/instance/assets' exists
+    // if it doesn't the container was just rebuilt and we need to run invenio-cli assets build before the watch
+    const packageJsonPath = "/root/.local/share/virtualenvs/rdm-venv/var/instance/assets";
+    if (!fs.existsSync(packageJsonPath)) {
+        outputChannel.appendLine(`package.json not found, running: invenio-cli assets build first...`);
+        const buildProcess = spawn("invenio-cli", ["assets", "build"], {
+            cwd: "/workspaces/rdm-instance/rdm-app",
+            shell: true
+        });
+
+        buildProcess.stdout.on("data", data => {
+            outputChannel.append(data.toString());
+        });
+
+        buildProcess.stderr.on("data", data => {
+            outputChannel.append(data.toString());
+        });
+
+        buildProcess.on("close", code => {
+            outputChannel.appendLine(`*** Initial asset build complete (exit code ${code}) ***`);
+            startAssetsWatch(); // start the watch after build is complete
+        });
+    } else {
+        outputChannel.appendLine(`Starting: invenio-cli assets watch...`);
+
+        assetsWatchProcess = spawn("invenio-cli", ["assets", "watch"], {
+            cwd: "/workspaces/rdm-instance/rdm-app",
+            shell: true
+        });
+
+        if (assetsWatchProcess.stdout) {
+            assetsWatchProcess.stdout.on("data", data => {
+                outputChannel.append(data.toString());
+            });
+        }
+
+        if (assetsWatchProcess.stderr) {
+            assetsWatchProcess.stderr.on("data", data => {
+                outputChannel.append(data.toString());
+            });
+        }
+
+        assetsWatchProcess.on("close", code => {
+            outputChannel.appendLine(`*** invenio-cli assets watch exited with code ${code} ***`);
+            assetsWatchProcess = null;
+        });
+
+        assetsWatchProcess.on("error", error => {
+            outputChannel.appendLine(`*** Error spawning process: ${error.message} ***`);
+            assetsWatchProcess = null;
+        });
+    }
+}
+
+function stopAssetsWatch() {
+    if (assetsWatchProcess) {
+        outputChannel.appendLine(`Stopping: invenio-cli assets watch...`);
+        assetsWatchProcess.kill();
+        assetsWatchProcess = null;
+    }
+}
+
+function restartAssetsWatch() {
+    stopAssetsWatch();
+    startAssetsWatch();
+    vscode.window.showInformationMessage("RDM Assets Watch restarted.");
+}
+
+function syncNewAssetFileWatcher(context: vscode.ExtensionContext) {
+    if (isNewAssetWatcherEnabled()) {
+        registerNewAssetWatcher(context);
+    } else {
+        disposeNewAssetFileWatcher();
+    }
+}
+
+function isNewAssetWatcherEnabled(): boolean {
+    return vscode.workspace.getConfiguration('rdm-assets').get('enableNewAssetWatcher', true);
+}
+
+function registerNewAssetWatcher(context: vscode.ExtensionContext) {
+    if (newAssetFileWatcher) {
+        return;
+    }
+    const watcher = vscode.workspace.createFileSystemWatcher("**/assets/**", false, true, false);
+
+    watcher.onDidCreate(uri => {
+        const filePath = uri.fsPath;
+        if (filePath.includes("/root/.local/share/virtualenvs/rdm-venv/lib/python3.12/site-packages/")) {
+            return;
+        }
+        // TODO before running assets build, run " rm -rf /root/.local/share/virtualenvs/rdm-venv/var/instance/assets/node_modules"
+        vscode.window.showInformationMessage(`New file detected: ${filePath} - Running: invenio-cli assets build...`);
+        outputChannel.appendLine(`*** New file detected: ${filePath} ***`);
+        outputChannel.appendLine(`Running: invenio-cli assets build...`);
+
+        const buildProcess = spawn("invenio-cli", ["assets", "build"], {
+            cwd: "/workspaces/rdm-instance/rdm-app",
+            shell: true
+        });
+
+        buildProcess.stdout.on("data", data => outputChannel.append(data.toString()));
+        buildProcess.stderr.on("data", data => outputChannel.append(data.toString()));
+
+        buildProcess.on("close", code => {
+            outputChannel.appendLine(`*** Asset build complete for ${filePath} (exit code ${code}) ***`);
+            vscode.window.showInformationMessage(`Asset build complete for ${filePath}`);
+        });
+    });
+
+    context.subscriptions.push(watcher);
+    newAssetFileWatcher = watcher;
+}
+
+function disposeNewAssetFileWatcher() {
+    if (!newAssetFileWatcher) {
+        return;
+    }
+    newAssetFileWatcher.dispose();
+    newAssetFileWatcher = null;
+    outputChannel.appendLine('New asset watcher disabled.');
+}
+
+export function deactivate() {
+    stopAssetsWatch();
+    disposeNewAssetFileWatcher();
+}

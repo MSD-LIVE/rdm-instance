@@ -1,0 +1,8 @@
+.minio.sys
+rdm_app.egg-info
+__pycache__/
+*.pyc
+.DS_Store
+.invenio.private
+node_modules/
+.rdm-ready
