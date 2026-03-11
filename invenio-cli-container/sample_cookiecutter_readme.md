@@ -1,51 +1,51 @@
-
-
-
-## Run cookiecutter in dev container environment
+## cookiecutter entries
   ```bash
-  # Run cookiecutter
-  invenio-cli init rdm -c v9.1 # <--- Change the version number to the version you are upgrading to
-
-    Initializing RDM application...
-    Running cookiecutter...
-    project_name [My Site]: rdm-app
-    project_shortname [rdm-app]:
-    project_site [rdm-app.com]: data.msdlive.org
-    github_repo [rdm-app/rdm-app]: MSD-LIVE/rdm-app
-    description [rdm-app InvenioRDM Instance]:
-    author_name [CERN]:
-    author_email [info@data.msdlive.org]:
-    year [2022]:
-    Select python_version:
-    1 - 3.8
-    2 - 3.7
-    3 - 3.9
-    Choose from 1, 2, 3 [1]:
-    Select database:
+  root@invenio-cli-test:/opt/app-root/data# invenio-cli init rdm
+Initializing RDM application...
+Running cookiecutter...
+You've downloaded /root/.cookiecutters/cookiecutter-invenio-rdm before. Is it okay to delete and re-download it? [y/n] (y): y
+  [1/13] project_name (My Site): Atlas
+  [2/13] project_shortname (atlas): rdm-app
+  [3/13] package_name (atlas): rdm-app
+  [4/13] project_site (rdm-app.com): 
+  [5/13] author_name (CERN): PNNL
+  [6/13] author_email (info@rdm-app.com): zoe@pnnl.gov
+  [7/13] year (2026): 
+  [8/13] Select database
     1 - postgresql
-    Choose from 1 [1]:
-    Select elasticsearch:
-    1 - 7
-    Choose from 1 [1]:
-    Select file_storage:
+    Choose from [1] (1): 
+  [9/13] Select search
+    1 - opensearch2
+    Choose from [1] (1): 
+  [10/13] Select file_storage
     1 - local
     2 - S3
-    Choose from 1, 2 [1]: 2
-    Select development_tools:
+    Choose from [1/2] (1): 2
+  [11/13] Select development_tools
     1 - yes
     2 - no
-    Choose from 1, 2 [1]:
-    -------------------------------------------------------------------------------
-    
-    Generating SSL certificate and private key for testing....
-    Generating a 4096 bit RSA private key
-    ........++
-    ..................................................................................................................................++
-    writing new private key to 'docker/nginx/test.key'
-    -----
-    -------------------------------------------------------------------------------
-    Writing invenio-invenio_cli config file...
-    Creating logs directory...
+    Choose from [1/2] (1): 1
+  [12/13] Select site_code
+    1 - yes
+    2 - no
+    Choose from [1/2] (1): 1
+  [13/13] Select use_reduced_vocabs
+    1 - no
+    2 - yes
+    Choose from [1/2] (1): 2
+-------------------------------------------------------------------------------
+
+Generating SSL certificate and private key for testing....
+Generating a RSA private key
+....................................................................................................................++++
+................++++
+writing new private key to 'docker/nginx/test.key'
+-----
+-------------------------------------------------------------------------------
+Writing invenio-cli config files...
+Creating logs directory...
+root@invenio-cli-test:/opt/app-root/data# 
+```
 
   # Generate the Pipfile.lock file so we can diff it
   cd rdm-app  # <-- must be run from created project folder

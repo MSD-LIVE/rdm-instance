@@ -26,8 +26,8 @@ After forking an rdm repo into your own org this is where it will reside as a gi
 
 # New RDM instances:
 1. Create a repo using this template
-2. rename 'rdm-app' to the name of your RDM app, i.e. rdm-app
-3. Follow the instructions in the invenio-cli-container's README.md to get a cookiecutter of an RDM app and the Pipfile and Pipfile.loc
+2. Optional: rename 'rdm-app' to the name of your RDM app, i.e. rdm-app, but once you do be sure to find/replace all occurrences of rdm-app in this repo
+3. cd into invenio-cli-container and Follow the instructions in the invenio-cli-container's README.md to get a cookiecutter of an RDM app and the Pipfile and Pipfile.loc
 4. Follow the instructions in the DevContainerREADME.md to create a local environment to develop your RDM instance in.
 5. Follow the instructions in the rdm-base-container's README.md to create a base Docker image that will be extended to build the image deployed to AWS as an ECS Fargate service.  CDK Code is in another repo: https://github.com/MSD-LIVE/deployment and the base image is used in the deployment's Dockerfile here: https://github.com/MSD-LIVE/deployment/blob/dev/rdm/docker/Dockerfile
 
