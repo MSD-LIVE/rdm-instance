@@ -47,5 +47,6 @@
         "python.analysis.exclude": [
             "/root/.local/share/virtualenvs/rdm-venv/lib/python3.12/site-packages/"
         ],
+        "rdm-assets.enableNewAssetWatcher": false,
     }
 }

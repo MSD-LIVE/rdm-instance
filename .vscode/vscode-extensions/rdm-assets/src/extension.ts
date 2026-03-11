@@ -3,9 +3,14 @@ import { spawn, ChildProcess } from "child_process";
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Temporary kill switch for all automated asset-watch behaviors.
+const ENABLE_ASSETS_AUTOMATION = false;
+
 let assetsWatchProcess: ChildProcess | null = null;
 let outputChannel: vscode.OutputChannel;
 let newAssetFileWatcher: vscode.FileSystemWatcher | null = null;
+let rdmReadyPath: string | null = null;
+let manualBuildStatusBarItem: vscode.StatusBarItem | null = null;
 
 export function activate(context: vscode.ExtensionContext) {
     outputChannel = vscode.window.createOutputChannel("RDM Assets and Overrides Watch");
@@ -16,52 +21,84 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(restartCommand);
 
+    const manualBuildCommand = vscode.commands.registerCommand('rdm-assets.runAssetsBuild', () => {
+        triggerAssetsBuild('manual build command');
+    });
+    context.subscriptions.push(manualBuildCommand);
+
+    manualBuildStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    manualBuildStatusBarItem.text = '$(tools) RDM Assets Build';
+    manualBuildStatusBarItem.tooltip = 'Run invenio-cli assets build once';
+    manualBuildStatusBarItem.command = 'rdm-assets.runAssetsBuild';
+    manualBuildStatusBarItem.show();
+    context.subscriptions.push(manualBuildStatusBarItem);
+
     const toggleWatcherCommand = vscode.commands.registerCommand('rdm-assets.toggleNewAssetWatcher', async () => {
         const config = vscode.workspace.getConfiguration('rdm-assets');
         const enabled = config.get<boolean>('enableNewAssetWatcher', true);
         const target = vscode.workspace.workspaceFolders?.length
             ? vscode.ConfigurationTarget.Workspace
             : vscode.ConfigurationTarget.Global;
-        await config.update('enableNewAssetWatcher', !enabled, target);
-        vscode.window.showInformationMessage(`New asset file watcher ${!enabled ? 'enabled' : 'disabled'}.`);
+
+        if (!ENABLE_ASSETS_AUTOMATION) {
+            outputChannel.appendLine('Toggle ignored: asset automation globally disabled.');
+            vscode.window.showWarningMessage('RDM asset automation is temporarily disabled; toggle has no effect.');
+            return;
+        }
+
+        const newState = !enabled;
+
+        await config.update('enableNewAssetWatcher', newState, target);
+        syncNewAssetFileWatcher(context);
+
+        outputChannel.appendLine(`New asset automation ${newState ? 'enabled' : 'disabled'} via manual toggle.`);
+        vscode.window.showInformationMessage(`New asset file watcher ${newState ? 'enabled' : 'disabled'}.`);
     });
     context.subscriptions.push(toggleWatcherCommand);
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {
+        if (!ENABLE_ASSETS_AUTOMATION) {
+            return;
+        }
         if (event.affectsConfiguration('rdm-assets.enableNewAssetWatcher')) {
             syncNewAssetFileWatcher(context);
         }
     }));
 
     // get the workspace folder that has the file path of /workspaces/rdm-instance/rdm-app
-    const workspaceFolder = vscode.workspace.workspaceFolders?.find(folder =>
-        folder.uri.fsPath.endsWith("rdm-app")
-    );
-    // const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    const workspaceFolder = vscode.workspace.workspaceFolders?.find(folder => {
+        outputChannel.appendLine(`Checking workspace folder: ${folder.uri.fsPath}`);
+        return folder.uri.fsPath.endsWith("rdm-app");
+    });
+    outputChannel.appendLine(`found workspace folder: ${workspaceFolder}`);
 
-    const rdmReadyPath = workspaceFolder ? path.join(workspaceFolder.uri.fsPath, ".rdm-ready") : "";
+    rdmReadyPath = workspaceFolder ? path.join(workspaceFolder.uri.fsPath, ".rdm-ready") : null;
 
-    // Only start if .rdm-ready exists
-    if (rdmReadyPath && fs.existsSync(rdmReadyPath)) {
-        startAssetsWatch();
+    if (ENABLE_ASSETS_AUTOMATION) {
+        // Only start if .rdm-ready exists
+        if (isRdmReady()) {
+            startAssetsWatch();
+        } else {
+            outputChannel.appendLine(`Not starting: invenio-cli assets watch, container still building (no invenio-cli installed yet).`);
+        }
+
+        // Watch for file creation to trigger manual build
+        syncNewAssetFileWatcher(context);
+
+        // Watch for signal file from setup-services.sh to restart the watch process
+        if (workspaceFolder) {
+            const signalWatcher = vscode.workspace.createFileSystemWatcher(
+                new vscode.RelativePattern(workspaceFolder, ".rdm-ready"),
+                false, false, false
+            );
+            signalWatcher.onDidCreate(() => vscode.commands.executeCommand('rdm-assets.restartRdmAssetsWatch'));
+            signalWatcher.onDidChange(() => vscode.commands.executeCommand('rdm-assets.restartRdmAssetsWatch'));
+            context.subscriptions.push(signalWatcher);
+            outputChannel.appendLine('watching for .rdm-ready...');
+        } else {
+            outputChannel.appendLine('no workspace folder, not watching for .rdm-ready');
+        }
     } else {
-        outputChannel.appendLine(`Not starting: invenio-cli assets watch, container still building (no invenio-cli installed yet).`);
-    }
-
-    // Watch for file creation to trigger manual build
-    syncNewAssetFileWatcher(context);
-
-    // Watch for signal file from setup-services.sh to restart the watch process
-    if (workspaceFolder) {
-        const signalWatcher = vscode.workspace.createFileSystemWatcher(
-            new vscode.RelativePattern(workspaceFolder, ".rdm-ready"),
-            false, false, false
-        );
-        signalWatcher.onDidCreate(() => vscode.commands.executeCommand('rdm-assets.restartRdmAssetsWatch'));
-        signalWatcher.onDidChange(() => vscode.commands.executeCommand('rdm-assets.restartRdmAssetsWatch'));
-        context.subscriptions.push(signalWatcher);
-        outputChannel.appendLine('watching for .rdm-ready...');
-    } else {
-        outputChannel.appendLine('no workspace folder, not watching for .rdm-ready');
+        outputChannel.appendLine('RDM asset automation disabled; use the status bar button to run builds manually.');
     }
 
     // get the workspace folder that has the file path of /workspaces/rdm-instance/rdm-app
@@ -113,6 +150,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 function startAssetsWatch() {
     if (assetsWatchProcess) {
+        return;
+    }
+    if (!isRdmReady()) {
+        outputChannel.appendLine('Cannot start: invenio-cli assets watch (missing .rdm-ready marker).');
         return;
     }
     // first check if '/root/.local/share/virtualenvs/rdm-venv/var/instance/assets' exists
@@ -179,20 +220,61 @@ function stopAssetsWatch() {
 
 function restartAssetsWatch() {
     stopAssetsWatch();
+    if (!ENABLE_ASSETS_AUTOMATION) {
+        outputChannel.appendLine('Skipping assets watch restart: automation globally disabled.');
+        return;
+    }
+    if (!isNewAssetWatcherEnabled()) {
+        outputChannel.appendLine('Skipping assets watch restart: automation currently disabled.');
+        return;
+    }
     startAssetsWatch();
-    vscode.window.showInformationMessage("RDM Assets Watch restarted.");
+    if (assetsWatchProcess) {
+        vscode.window.showInformationMessage("RDM Assets Watch restarted.");
+    }
 }
 
 function syncNewAssetFileWatcher(context: vscode.ExtensionContext) {
+    if (!ENABLE_ASSETS_AUTOMATION) {
+        outputChannel.appendLine('Asset automation disabled; watcher sync skipped.');
+        return;
+    }
     if (isNewAssetWatcherEnabled()) {
+        startAssetsWatch();
         registerNewAssetWatcher(context);
     } else {
         disposeNewAssetFileWatcher();
+        stopAssetsWatch();
     }
 }
 
 function isNewAssetWatcherEnabled(): boolean {
     return vscode.workspace.getConfiguration('rdm-assets').get('enableNewAssetWatcher', true);
+}
+
+function isRdmReady(): boolean {
+    return !!(rdmReadyPath && fs.existsSync(rdmReadyPath));
+}
+
+function triggerAssetsBuild(reason: string, filePath?: string) {
+    const detail = filePath ? `${reason}: ${filePath}` : reason;
+    const startMessage = `Running invenio-cli assets build (${detail})...`;
+    vscode.window.showInformationMessage(startMessage);
+    outputChannel.appendLine(`*** ${startMessage} ***`);
+
+    const buildProcess = spawn("invenio-cli", ["assets", "build"], {
+        cwd: "/workspaces/rdm-instance/rdm-app",
+        shell: true
+    });
+
+    buildProcess.stdout.on("data", data => outputChannel.append(data.toString()));
+    buildProcess.stderr.on("data", data => outputChannel.append(data.toString()));
+
+    buildProcess.on("close", code => {
+        const completionMessage = `Asset build complete (${detail}) (exit code ${code}).`;
+        outputChannel.appendLine(`*** ${completionMessage} ***`);
+        vscode.window.showInformationMessage(completionMessage);
+    });
 }
 
 function registerNewAssetWatcher(context: vscode.ExtensionContext) {
@@ -207,22 +289,8 @@ function registerNewAssetWatcher(context: vscode.ExtensionContext) {
             return;
         }
         // TODO before running assets build, run " rm -rf /root/.local/share/virtualenvs/rdm-venv/var/instance/assets/node_modules"
-        vscode.window.showInformationMessage(`New file detected: ${filePath} - Running: invenio-cli assets build...`);
         outputChannel.appendLine(`*** New file detected: ${filePath} ***`);
-        outputChannel.appendLine(`Running: invenio-cli assets build...`);
-
-        const buildProcess = spawn("invenio-cli", ["assets", "build"], {
-            cwd: "/workspaces/rdm-instance/rdm-app",
-            shell: true
-        });
-
-        buildProcess.stdout.on("data", data => outputChannel.append(data.toString()));
-        buildProcess.stderr.on("data", data => outputChannel.append(data.toString()));
-
-        buildProcess.on("close", code => {
-            outputChannel.appendLine(`*** Asset build complete for ${filePath} (exit code ${code}) ***`);
-            vscode.window.showInformationMessage(`Asset build complete for ${filePath}`);
-        });
+        triggerAssetsBuild('new file detected', filePath);
     });
 
     context.subscriptions.push(watcher);

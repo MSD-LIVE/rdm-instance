@@ -6,6 +6,7 @@
 1. Start up Visual Studio Code or PyCharm
 1. ctrl+shift+p -> dev containers: open workspace in container ... then select rdm-app/rdm-dev.code-workspace. ignore 'workspace could fail because it contains absolute paths...' AND !IMPORTANT! be sure to NOT be on VPN or container will fail to build
 1. Wait for the Docker image to build and start up, this could take a while if its the first time building the devcontainer. You can click on the 'show log' notification in the bottom right of VS Code to monitor progress. You might see an error message open at the bottom right, "default interpreter path '/root/.local/share/virtualenvs/rdm-venv/bin/python' could not be resolved: Could not resolve interpreter path '/root/.local/share/virtualenvs/rdm-venv/bin/python" but its because the workspace was opened before the venv got created. If you see this wait until the dev container completely finishes building then close and re-open it.
+1. Go to the output view in VS code and select RDM Assets builder from the drop down.
 
 ## Developing
 
@@ -13,6 +14,9 @@
 1. Run the "RDM App Debugger (py and worker)" debug config from VS Code's debugger
 1. Visit the running application at <https://127.0.0.1:5000>
 1. Emails that are sent can be viewed via the mailhog web interface at: http://127.0.0.1:8025/ if configured (see Adding Email Services section below)
+1. Go to the output view in VS code and select 'RDM Assets and overrides watch' from the drop down to make sure asset and js changes trigger RDM's build scripts. If you see an error that is not caused by your own bad code, try these 2 easy things first:
+    - ctrl+shift+p -> 'restart asset watcher' command 
+    - ctrl+shift+p -> dev containers: rebuild container
 
 ## Scripts/Commands you might need to run:
 

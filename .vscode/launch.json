@@ -32,7 +32,7 @@
             "jinja": true,
             "justMyCode": false,
             "console": "integratedTerminal",
-            "cwd": "/workspaces/vanilla-rdm-instance/rdm-app",
+            "cwd": "/workspaces/rdm-instance/rdm-app",
             "python": "/root/.local/share/virtualenvs/rdm-venv/bin/python"
         },
         {
