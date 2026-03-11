@@ -12,8 +12,8 @@
                 "FLASK_ENV": "development",
                 "FLASK_DEBUG": "1",
                 "PYTHONIOENCODING": "utf-8",
-                "INVENIO_SITE_UI_URL": "https://127.0.0.1:5007",
-                "INVENIO_SITE_API_URL": "https://127.0.0.1:5007/api",
+                "INVENIO_SITE_UI_URL": "https://127.0.0.1:5000",
+                "INVENIO_SITE_API_URL": "https://127.0.0.1:5000/api",
                 "MAIL_SERVER": "127.0.0.1",
                 "MAIL_PORT": "1025",
                 "MAIL_DEFAULT_SENDER": "test@localhost"
@@ -23,7 +23,7 @@
                 "--host",
                 "0.0.0.0",
                 "--port",
-                "5007",
+                "5000",
                 "--cert",
                 "/workspaces/rdm-instance/rdm-app/docker/nginx/test.crt",
                 "--key",
@@ -48,12 +48,12 @@
                 "FLASK_ENV": "development",
                 "FLASK_DEBUG": "1",
                 "PYTHONIOENCODING": "utf-8",
-                "INVENIO_SITE_UI_URL": "https://127.0.0.1:5007",
-                "INVENIO_SITE_API_URL": "https://127.0.0.1:5007/api"
+                "INVENIO_SITE_UI_URL": "https://127.0.0.1:5000",
+                "INVENIO_SITE_API_URL": "https://127.0.0.1:5000/api"
             },
             "args": [
                 "--bind",
-                "0.0.0.0:5007",
+                "0.0.0.0:5000",
                 "--worker-class",
                 "gthread",
                 "--workers",
