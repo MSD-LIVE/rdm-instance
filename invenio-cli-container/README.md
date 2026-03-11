@@ -28,26 +28,26 @@ docker exec -it invenio-cli-test bash  #or right-click from vs code containers v
     ```
 1. For an all new RDM instance copy the cookie cutter app to the rdm-app folder
     ```bash
-    cd invenio-cli-container
-    cp -R ..
+    cd invenio-cli-container/data
+    sudo cp -r rdm-app ../../
     ```
 1. For local dev container environment, edit the generated docker-compose.yml file that you copied to rdm-app to add volume mounts for postgres and opensearch editing/replacing these sections:
     ```yml
     ...
-      db:
-        extends:
-            file: docker-services.yml
-            service: db
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
+    db:
+    extends:
+        file: docker-services.yml
+        service: db
+    volumes:
+        - postgres_data:/var/lib/postgresql/data
 
     ...
-      search:
-        extends:
-            file: docker-services.yml
-            service: search
-        volumes:
-            - opensearch_data:/usr/share/opensearch/data
+    search:
+    extends:
+        file: docker-services.yml
+        service: search
+    volumes:
+        - opensearch_data:/usr/share/opensearch/data
     ...
     volumes:
         data:
@@ -56,23 +56,29 @@ docker exec -it invenio-cli-test bash  #or right-click from vs code containers v
     ```
 1. (Optional) Add mailpit to docker-compose.yaml to see emails sent by RDM:
     ```yaml
-      mailpit:
-        image: axllent/mailpit
-        restart: unless-stopped
-        ports:
-            - "${DOCKER_SERVICES_IP_BIND:-127.0.0.1}:8025:8025"
-            - "${DOCKER_SERVICES_IP_BIND:-127.0.0.1}:1025:1025"
-        environment:
-            MP_MAX_MESSAGES: 5000
-            MP_SMTP_AUTH_ACCEPT_ANY: 1
-            MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    ports:
+        - "${DOCKER_SERVICES_IP_BIND:-127.0.0.1}:8025:8025"
+        - "${DOCKER_SERVICES_IP_BIND:-127.0.0.1}:1025:1025"
+    environment:
+        MP_MAX_MESSAGES: 5000
+        MP_SMTP_AUTH_ACCEPT_ANY: 1
+        MP_SMTP_AUTH_ALLOW_INSECURE: 1
     ```
 1. Edit the docker-services.yml and find/replace all `restart: "unless-stopped"` lines with `restart: "no"`
 1. For an existing RDM instance using the invenio-cli-container for upgrade purposes copy the files to a temp dir and then use a diff editor to compare it with your instance's code (using the older version of RDM) and merge as needed to perform the upgrade.
 
+1. You can now stop the invenio-cli-test container
 
+# Next Steps
+If you just used this container to cookie cut an all new RDM instance go back to the README.md at the root of this repo to continue following instructions for how to set up your local dev container environment.
+
+TODO If you just used this container to upgrade RDM for an exising instance you'll need to follow other instructions to come
 
 ## 2. Create a new RDM base image
+TODO review / finish these docs
 1. cd to rdm-base-container repo and make a new folder for this version
     ```bash
     cd rdm-base-container

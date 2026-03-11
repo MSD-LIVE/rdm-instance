@@ -27,7 +27,7 @@ After forking an rdm repo into your own org this is where it will reside as a gi
 # New RDM instances:
 1. Create a repo using this template
 2. Optional: rename 'rdm-app' to the name of your RDM app, i.e. rdm-app, but once you do be sure to find/replace all occurrences of rdm-app in this repo
-3. cd into invenio-cli-container and Follow the instructions in the invenio-cli-container's README.md to get a cookiecutter of an RDM app and the Pipfile and Pipfile.loc
+3. cd into invenio-cli-container and Follow the instructions in the invenio-cli-container's README.md to get a cookiecutter of an RDM app and the Pipfile and Pipfile.lock files generated
 4. Follow the instructions in the DevContainerREADME.md to create a local environment to develop your RDM instance in.
 5. Follow the instructions in the rdm-base-container's README.md to create a base Docker image that will be extended to build the image deployed to AWS as an ECS Fargate service.  CDK Code is in another repo: https://github.com/MSD-LIVE/deployment and the base image is used in the deployment's Dockerfile here: https://github.com/MSD-LIVE/deployment/blob/dev/rdm/docker/Dockerfile
 
@@ -38,6 +38,28 @@ After forking an rdm repo into your own org this is where it will reside as a gi
 4. create a branch in your fork and name it {tag_name}-branch using the tag for the tag_name, push that to git
 5. create a submodule of your forked repo and place it in forked-rdm-repos
 Note: submodules only track commits from their source repos so you will make edits to the branch of your fork and push those edits via the submodule support from VS code
+6. Add the forked repo as a folder in your vs code workspace file for your dev container edit rdm-app/rdm-dev.code-workspace. For example if you fork invenio-rdm-records make these edits:
+```
+ "folders": [
+...
+{
+    // Have to have forked/submodule repos added to multi-root workspace in order for their .vscode/settings.json to be respected
+    "path": "/workspaces/rdm-instance/forked-rdm-repos/invenio-rdm-records",
+    "name": "invenio-rdm-records"
+},
+...
+ ]
+...
+"settings": {
+...
+"python.analysis.extraPaths": [
+    "/root/.local/share/virtualenvs/rdm-venv/lib/python3.12/site-packages",
+    "/workspaces/rdm-instance/forked-rdm-repos/invenio-rdm-records",
+],
+...
+}
+...
+```
 
 
 # Existing RDM instances:

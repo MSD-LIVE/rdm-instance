@@ -5,7 +5,7 @@
 1. Change into the repo directory
 1. Start up Visual Studio Code or PyCharm
 1. ctrl+shift+p -> dev containers: open workspace in container ... then select rdm-app/rdm-dev.code-workspace. ignore 'workspace could fail because it contains absolute paths...' AND !IMPORTANT! be sure to NOT be on VPN or container will fail to build
-1. Wait for the Docker image to build and start up
+1. Wait for the Docker image to build and start up, this could take a while if its the first time building the devcontainer. You can click on the 'show log' notification in the bottom right of VS Code to monitor progress
 
 ## Developing
 
@@ -77,3 +77,6 @@ Edit the docker-compose.yaml in rdm-app to add the following and copy/paste .env
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
 ```
+
+## Re: VS Code extension
+This workspace comes pre-installed with a custom VS Code extension that watches for new assets and automatically runs the invenio-cli assets build command. You'll see when it runs in VS Code's output view. Neither chatgpt nor copilot had the right config for including a custom extension in the devcontainer using it's source (.vsix) but this article has extensive documentation about it we can use later if we get fancier with our extensions: https://www.kenmuse.com/blog/implementing-private-vs-code-extensions-for-dev-containers/

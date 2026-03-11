@@ -10,19 +10,6 @@
             "name": "rdm-instance"
         },
         {
-            // Have to have forked/submodule repos added to multi-root workspace in order for their .vscode/settings.json to be respected
-            "path": "/workspaces/rdm-instance/invenio-app-rdm",
-            "name": "invenio-app-rdm"
-        },
-        {
-            "path": "/workspaces/rdm-instance/invenio-rdm-records-v13",
-            "name": "invenio-rdm-records-v13"
-        },
-        {
-            "path": "/workspaces/rdm-instance/invenio-requests",
-            "name": "invenio-requests"
-        },
-        {
             // Added site-packages overrides as a workspace root in order for the .vscode/settings.json to be respected (and not autoformat on save)
             "path": "/workspaces/rdm-instance/overrides",
             "name": "Site-Packages Overrides"
@@ -31,15 +18,6 @@
             // Added site-packages in order to make it easy to add breakpoints to installed packages when debugging
             "path": "/root/.local/share/virtualenvs/rdm-venv/lib/python3.12/site-packages/",
             "name": "Site-Packages"
-        },
-        {
-            // adding old app as workspace folders in order for git view to work
-            "path": "/workspaces/rdm-instance/oldapp/rdm-app",
-            "name": "old-rdm-app"
-        },
-        {
-            "path": "/workspaces/rdm-instance/oldapp/msdlive-rdm-contrib",
-            "name": "old-msdlive-rdm-contrib"
         },
         {
             "path": "/root/.aws",
@@ -52,10 +30,6 @@
         // set in extraPaths the paths of editable installed modules
         "python.analysis.extraPaths": [
             "/root/.local/share/virtualenvs/rdm-venv/lib/python3.12/site-packages",
-            "/workspaces/rdm-instance/invenio-rdm-records-v13",
-            "/workspaces/rdm-instance/invenio-app-rdm",
-            "/workspaces/rdm-instance/invenio-requests",
-            "/workspaces/rdm-instance/msdlive-rdm-contrib",
         ],
         // "python.analysis.typeCheckingMode": "basic",
         // "python.analysis.diagnosticMode": "workspace",
