@@ -38,7 +38,7 @@ After forking an rdm repo into your own org this is where it will reside as a gi
 4. create a branch in your fork and name it {tag_name}-branch using the tag for the tag_name, push that to git
 5. create a submodule of your forked repo and place it in forked-rdm-repos
 Note: submodules only track commits from their source repos so you will make edits to the branch of your fork and push those edits via the submodule support from VS code
-6. Add the forked repo as a folder in your vs code workspace file for your dev container edit rdm-app/rdm-dev.code-workspace. For example if you fork invenio-rdm-records make these edits:
+6. Add the forked repo as a folder in your vs code workspace file for your dev container. Edit rdm-app/rdm-dev.code-workspace. For example if you fork invenio-rdm-records make these edits:
 ```
  "folders": [
 ...
@@ -60,6 +60,13 @@ Note: submodules only track commits from their source repos so you will make edi
 }
 ...
 ```
+7. Edit the dev containers setup-services.sh to include the forked repo as a safe.directory, and install it as an editable package. Find and uncomment out these lines in rdm-app/setup-services.sh, updating it with the repo you forked:
+```bash
+git config --global --add safe.directory /workspaces/rdm-instance/forked-rdm-repos/invenio-rdm-records
+...
+pipenv run invenio-cli packages install  /workspaces/rdm-instance/forked-rdm-repos/invenio-rdm-records
+```
+
 
 
 # Existing RDM instances:
