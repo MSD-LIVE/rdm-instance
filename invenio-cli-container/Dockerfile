@@ -44,7 +44,7 @@ ENV LC_ALL en_US.UTF-8
 RUN pip install --upgrade pip setuptools wheel pipenv
 
 # Install Node.js 14
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
