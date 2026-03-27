@@ -1,6 +1,6 @@
 # New RDM instances:
 
-Brand new instances of RDM can use this repo template to help them create:
+Brand new instances of RDM can use this repo to help them create:
 1. A base/vanilla RDM Docker image to be extended for production use (MSD-LIVE uses as it's base image for deploying to AWS Fargate ECS service)
 2. A cookie cutter RDM instance including (importantly) a Pipfile and Pipfile.lock: these are used in the base image when deploying to production environments as well as copied to developers environments to ensure package versions match.
 2. A devcontainer that runs all RDM services locally and the RDM instance created from the cookie cutter
@@ -25,9 +25,9 @@ Included in the devcontainer and is how RDM (and other packages') code can be ov
 After forking an rdm repo into your own org this is where it will reside as a git submodule. These repos will be included in the devcontainer and installed into RDM as editable modules.
 
 # New RDM instances:
-1. Create a repo using this template
-2. Optional: rename 'rdm-app' to the name of your RDM app, i.e. rdm-app, but once you do be sure to find/replace all occurrences of rdm-app in this repo
-3. cd into invenio-cli-container and Follow the instructions in the invenio-cli-container's README.md to get a cookiecutter of an RDM app and the Pipfile and Pipfile.lock files generated
+1. Create a repo that is a copy or fork of this one
+2. Optional: rename 'rdm-app' to the name of your RDM app, i.e. rdm-app, but once you do be sure to find/replace all occurrences of rdm-app in this repo and in the docs.
+3. cd into invenio-cli-container and follow the instructions in the invenio-cli-container's README.md to get a cookiecutter of an RDM app and the Pipfile and Pipfile.lock files generated
 4. Follow the instructions in the DevContainerREADME.md to create a local environment to develop your RDM instance in.
 5. Follow the instructions in the rdm-base-container's README.md to create a base Docker image that will be extended to build the image deployed to AWS as an ECS Fargate service.  CDK Code is in another repo: https://github.com/MSD-LIVE/deployment and the base image is used in the deployment's Dockerfile here: https://github.com/MSD-LIVE/deployment/blob/dev/rdm/docker/Dockerfile
 

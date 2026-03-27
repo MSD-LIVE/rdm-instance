@@ -6,10 +6,6 @@ Use this container to generate the repository template, and then move the templa
 rdm-app folder.
 
 
-
-# Upgrading to new version of RDM
-TODO - better docs here
-
 ## 0: Start up invenio-cli container
 
 ```bash
@@ -72,12 +68,20 @@ docker exec -it invenio-cli-test bash  #or right-click from vs code containers v
 
 1. You can now stop the invenio-cli-test container
 
+
 # Next Steps
 If you just used this container to cookie cut an all new RDM instance go back to the README.md at the root of this repo to continue following instructions for how to set up your local dev container environment.
 
+
+# IMPORTANT!: Old docs alert!
+From here down is old documentation that needs to be updated still. New RDM instances using this repo should ignore everything else in this readme.
+
+
+
+## Upgrading to new version of RDM
 TODO If you just used this container to upgrade RDM for an exising instance you'll need to follow other instructions to come
 
-## 2. Create a new RDM base image
+## 1. Create a new RDM base image
 TODO review / finish these docs
 1. cd to rdm-base-container repo and make a new folder for this version
     ```bash
@@ -96,7 +100,7 @@ TODO review / finish these docs
 
 
 
-## 3. Clone invenio source repos to match versions of the latest release
+## 2. Clone invenio source repos to match versions of the latest release
   1. clone this repo: https://github.com/MSD-LIVE/clone-invenio.git
   1. from the container pip list all of the invenio modules 
       ```bash
