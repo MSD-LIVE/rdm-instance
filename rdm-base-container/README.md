@@ -2,6 +2,8 @@
 
 This repository contains the files to build a vanilla Invenio RDM image with just the Python dependencies installed and no application configured.
 
+# Where these files came from
+See the readme in rdm-instance/invenio-cli-container, search for 'rdm-base-container'
 
 # Log into GitHub container registry (ghcr)
 
