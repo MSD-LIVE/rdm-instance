@@ -27,6 +27,18 @@ docker exec -it invenio-cli-test bash  #or right-click from vs code containers v
     cd invenio-cli-container/data
     sudo cp -r rdm-app ../../
     ```
+    and also copy these files/folders to the rdm-base-container folder that are used to build the base RDM image used in cloud deployments
+    note the foldername should match the RDM version (i.e. 13.0) 
+    TODO Chandrika test these paths are correct:
+    ```bash
+    cd invenio-cli-container/data/rdm-app
+    sudo cp .invenio ../../rdm-base-container/13.0/
+    sudo cp .invenio.private ../../rdm-base-container/13.0/
+    sudo cp Pipfile ../../rdm-base-container/13.0/
+    sudo cp Pipfile.lock ../../rdm-base-container/13.0/
+    sudo cp -R docker/uswgi ../../rdm-base-container/13.0/
+    sudo cp -R site ../../rdm-base-container/13.0/
+    ```
 1. For local dev container environment, edit the generated docker-compose.yml file that you copied to rdm-app to add volume mounts for postgres and opensearch editing/replacing these sections:
     ```yml
     ...
