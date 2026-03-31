@@ -6,7 +6,7 @@ Use this container to generate the repository template, and then move the templa
 rdm-app folder.
 
 
-## 0: Start up invenio-cli container
+## 0: Start up invenio-cli container (TODO: try doing this in wsl2 environment which has the cloned rdm-instance)
 
 ```bash
 cd invenio-cli-container
