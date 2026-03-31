@@ -1,0 +1,3 @@
+[submodule "react-invenio-forms"]
+	path = react-invenio-forms
+	url = https://github.com/MSD-LIVE/react-invenio-forms
