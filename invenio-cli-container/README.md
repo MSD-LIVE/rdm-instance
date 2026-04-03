@@ -44,6 +44,12 @@ The below steps needs to be done from the machine that has cloned rdm-instance d
     sudo cp -r docker/uwsgi ../../../rdm-base-container/13.0/
     sudo cp -r site ../../../rdm-base-container/13.0/
     ```
+    Last, copy the uwsgi ini that we created to point to the invenio_app to the uwsgi folder:
+    ```bash
+    cd rdm-base-container
+    sudo cp uwsgi.ini ../../../rdm-base-container/13.0/docker/uwsgi/
+    ```
+   
 1. Edit <rdm-instance clonedir>/rdm-app/docker-compose.yml file:
     Add volumes to section db and section search
     ```yml
