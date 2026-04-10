@@ -122,16 +122,43 @@ def _allowed_html_attrs(tag, name, value):
 ALLOWED_HTML_ATTRS = _allowed_html_attrs
 
 ALLOWED_CSS_STYLES = [
+    # Layout / sizing
+    "width",
+    "height",
+    "max-width",
+    "min-width",
+    "max-height",
+    "min-height",
+    "float",
+    # Margin / padding
+    "margin",
+    "margin-top",
+    "margin-right",
+    "margin-bottom",
+    "margin-left",
+    "padding",
+    "padding-top",
+    "padding-right",
+    "padding-bottom",
+    "padding-left",
+    # Border
+    "border",
     "border-width",
+    "border-style",
+    "border-color",
+    "border-radius",
     "border-collapse",
     "border-spacing",
-    "height",
-    "margin-right",
-    "margin-left",
+    # Background
+    "background",
+    "background-color",
+    # Text / font
+    "color",
     "text-align",
     "vertical-align",
-    "padding",
-    "width",
+    "font-size",
+    "font-weight",
+    "font-style",
 ]
 
 

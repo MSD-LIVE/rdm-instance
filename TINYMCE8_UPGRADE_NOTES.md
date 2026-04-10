@@ -183,8 +183,31 @@ Clean copy of the installed `marshmallow_utils/html.py` with changes applied dir
 - `ALLOWED_HTML_ATTRS` changed from a dict to callable `_allowed_html_attrs` — enables value-level checks on img `src`
 - `ALLOWED_DATA_IMAGE_TYPES` constant declared (raster only: png/jpeg/gif/webp — SVG excluded)
 - `protocols=frozenset({"http", "https", "mailto", "data"})` added to `bleach.clean()`
+- `ALLOWED_CSS_STYLES` expanded from 10 properties to 36 — covers all CSS that TinyMCE 8 advanced features produce
 
 Symlinked into site-packages via `python3 overrides/link-overrides.py`.
+
+**`ALLOWED_CSS_STYLES` (full list):**
+```python
+ALLOWED_CSS_STYLES = [
+    # Layout / sizing
+    "width", "height", "max-width", "min-width", "max-height", "min-height",
+    "float",
+    # Margin / padding
+    "margin", "margin-top", "margin-right", "margin-bottom", "margin-left",
+    "padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
+    # Border
+    "border", "border-width", "border-style", "border-color", "border-radius",
+    "border-collapse", "border-spacing",
+    # Background
+    "background", "background-color",
+    # Text / font
+    "color", "text-align", "vertical-align",
+    "font-size", "font-weight", "font-style",
+]
+```
+
+> **Why this matters:** `bleach`'s `CSSSanitizer` strips any CSS property not in this list. The original list (10 items) was missing `border`, `border-style`, `border-color`, `background-color`, `color`, `float`, etc. — so image borders and table/cell background colors set via TinyMCE's advanced dialogs were silently removed on save.
 
 > **Important:** The override alone is not sufficient — see `invenio.cfg` below.
 
@@ -247,6 +270,7 @@ When that PR merges and you upgrade, simply delete this file.
 | `pywebpack MergeConflictError` | 5 packages all declare `tinymce: "^6.7.2"` conflicting with `^8.3.2` | Create override `webpack.py` for each package bumping to `^8.3.2` |
 | Images lost on save (after override) | `invenio_rdm_records` `SanitizedHTML` reads `ALLOWED_HTML_TAGS`/`ALLOWED_HTML_ATTRS` from Flask config — `KeyError` if absent | Import them from `marshmallow_utils.html` in `invenio.cfg` so Flask config gets the updated values |
 | Images stripped in additional descriptions (render) | `show_add_descriptions` macro applies `\| sanitize_html()` at render time — redundant double-sanitization strips `data:` URIs; main description uses `\| safe` with no filter | Override `detail.html` template: replace `\| sanitize_html() \| safe` with `\| safe` (content already sanitized by marshmallow on save) |
+| Image borders / table background colors stripped on save | `ALLOWED_CSS_STYLES` in `marshmallow_utils/html.py` too narrow (10 items) — missing `border`, `background-color`, `color`, `float`, etc.; `CSSSanitizer` silently removes any property not in the list | Expand `ALLOWED_CSS_STYLES` to 36 properties covering all TinyMCE 8 advanced styling output |
 
 ---
 
@@ -277,6 +301,7 @@ When that PR merges and you upgrade, simply delete this file.
  - _ALLOWED_HTML_ATTRS_BASE dict kept for all existing tags; ALLOWED_HTML_ATTRS is now the callable _allowed_html_attrs handling img src value-level checks
  - Declares ALLOWED_DATA_IMAGE_TYPES constant
  - protocols=frozenset({"http", "https", "mailto", "data"}) added to bleach.clean()
+ - ALLOWED_CSS_STYLES expanded to 36 properties (border, background-color, color, float, margin, padding, font etc.) — original 10-item list predated TinyMCE's advanced styling features and caused silent stripping of image borders and table background colors on save
  - NOTE: allows image/png, image/jpeg, image/gif, image/webp — not data:text/html, data:image/svg+xml, etc.
  - **Why `protocols` must be set explicitly (bleach 6 design):**
    bleach applies two independent filters to URL-type attributes (`href`, `src`, etc.):
