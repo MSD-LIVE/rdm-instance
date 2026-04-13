@@ -43,7 +43,30 @@ Upgrade `react-invenio-forms` (forked from invenio) from TinyMCE 6 to TinyMCE 8,
 
 ### Day-to-day
 
-  Use when you change `RichEditor.js`- no `webpack.py` changes
+  Use when you change `RichEditor.js` or any js changes (no `webpack.py` or other override changes)
+
+  #### Option 1: Faster (though not instant) changes get picked up on save and webpack gets compiled.
+
+  1. Check and kill any lingering watch/webpack process
+
+  2. Open Terminal - watch module
+  ```bash
+    cd /workspaces/rdm-instance/rdm-app
+    invenio-cli assets watch-module --link ../react-invenio-forms
+  ```
+
+  3. Open another Terminal - webpack watch
+  ```bash
+    cd /workspaces/rdm-instance/rdm-app
+    invenio-cli assets watch
+  ```
+
+  4. After changes to any js file is saved, rollup rebuilds teh package(about 1second) in terminal 1, webpack picks up
+     changes and recompiles (about 10 seconds. Terminal 2 prints "compiled successfully")
+
+  5. Reload browser to test changes
+
+  #### Option 2: Slower fall back option
 
   ```bash
   cd /workspaces/rdm-instance/react-invenio-forms
@@ -55,13 +78,6 @@ Upgrade `react-invenio-forms` (forked from invenio) from TinyMCE 6 to TinyMCE 8,
   > **Important:** After every `npm run build`, always run `npm run prelink-dist`.
   > It creates `dist/package.json` which is required for webpack to resolve the package.
   > `npm run build` alone deletes and recreates `dist/` without it.
-
-  invenio-rdm docs recommends use of invenio-client assets watch (below commands)
-
-    invenio-cli assets watch-module --link ../react-invenio-forms   # Terminal 1
-    invenio-cli assets watch                                         # Terminal 2
-
-  but this didn't work for me consistently
 
 ---
 
