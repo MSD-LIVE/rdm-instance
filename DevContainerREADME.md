@@ -54,6 +54,9 @@ If you want to completely wipe your dev container and all RDM data, from the dev
 
 ## Developers resources:
 
+The invenio instance path is at /root/.local/share/virtualenvs/rdm-venv/var/instance/. This is where all the assets get
+symlinked or copied too
+
 http://localhost:5601/ is opensearch dashboard. Haven't figured out how best to use that yet but http://localhost:5601/app/dev_tools will get you to the console to execute ES searches on
 
 http://127.0.0.1:5050/ is pgadmin to use to browse RDM's database directly
