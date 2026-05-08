@@ -1,4 +1,9 @@
-
+## Pre-step for container and AWS stacks
+## Clone the submodule and install to override RDM's
+Run these commands to get the submodule cloned, you only have to do this once after you clone this repo:
+1. `$ cd rdm-instance/`
+1. `$ git submodule update --init`
+   
 ## Getting started
 
 1. Start up Visual Studio Code open to this repo
